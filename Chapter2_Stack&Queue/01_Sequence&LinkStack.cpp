@@ -1,8 +1,8 @@
 #include <iostream>
 
-using namespace std;
-
 #define maxSize 5
+
+using namespace std;
 
 //sequence stack
 typedef struct SequenceStack

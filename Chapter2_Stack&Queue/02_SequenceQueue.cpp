@@ -1,8 +1,8 @@
 #include <iostream>
 
-using namespace std;
-
 #define MAXSIZE    5
+
+using namespace std;
 
 typedef struct SequenceQueue
 {

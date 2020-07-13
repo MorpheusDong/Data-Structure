@@ -45,7 +45,7 @@ void enQueueLq(LiQueue* &lq, int x)
 	}
 	else
 	{
-		lq->rear->next = p;
+		lq->rear->next = p;    //follow the last member
 		lq->rear = p;
 	}
 }
