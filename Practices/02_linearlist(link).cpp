@@ -8,6 +8,13 @@ typedef struct LNode
 	struct LNode* next;
 }LNode;
 
+typedef struct DNode
+{
+	int data;
+	struct DNode* next;
+	struct DNode* prior;
+}DNode;
+
 //头插法，数组建表
 void insertF(LNode* &C,int A[],int n)
 {
@@ -680,12 +687,234 @@ bool isPattern(LNode *A, LNode *B)
 		return true;
 }
 
-
-int main()
+//17.检查循环双链表内的元素是否对称
+bool isSymmetry(DNode *C)
 {
+	DNode *p,*q;
+	p = C->next;    //p从前往后遍历
+	q = C->prior;    //q从后往前遍历
 	
+	while(p != q && q->prior != p)    //元素数量为奇数时，p==q退出；为偶数时，q->prior == p退出
+	{
+		if(p->data == q->data)
+		{
+			p = p->next;
+			q = q->prior;
+		}
+		else
+		{
+			return false;
+		}
+	}		
+	return true;
+}
+
+//18.将循环单链表H2接到循环单链表H1后面，使之仍为循环单链表
+void linkTo(LNode *H1,LNode *H2)
+{
+	LNode *p1,p2;
+	p1 = H1;
+	while(p1->next != H1)    //找到各自的尾指针
+	{
+		p1 = p1->next;
+	}
+	p2 = H2;
+	while(p2->next != H2)
+	{
+		p2 = p2->next;
+	}
+	p1->next = H2;    //H1的尾接到H2的头
+	p2->next = H1;    //H2的尾接到H1的头
+}
+
+//19.持续查找循环单链表中的最小元素，输出值然后删除节点，直到表空为止，最后删除头节点
+void outDelMin(LNode *&C)
+{
+	while(C->next != C)
+	{
+		LNode *p,*pre,*min,*minpre;
+		p = C->next;    //工作指针
+		pre = C;    //跟着p一起走的前驱指针
+		min = p;    //最小节点指针，随p更新
+		minpre = C;    //最小节点的前驱指针，随pre更新，用于删除节点
+		while(p != C)
+		{
+			if(p->data < min->data)
+			{
+				minpre = pre;
+				min = p;
+			}
+			else
+			{
+				pre = p;
+				p = p->next;
+			}
+		}
+		cout<<min->data;
+		minpre = min->next;
+		free(min);
+	}
+	free(C);
+}
+
+//20.非循环双链表，其中的节点除了data，next和prior域外还有一个freq域。
+//freq会在每次调用locate(L,x)时，将值为x的节点的freq加1，然后将整个链表按freq递减的顺序重排。
+//freq相同的节点，先被访问的排在前面。函数返回找到的节点。
+LNode* locate(LNode *L,int x)
+{
+	LNode *p;
+	p = L->next;
+	while(p&&p->data != x)    //先找到x
+	{
+		 p = p->next;
+	}
 	
+	if(p == NULL)
+	{
+		cout<<x<<" not found.";
+		exit(0);
+	}
+	else
+	{
+		++(p->freq);
+		LNode *q = p;    //用q向前遍历寻找插入位置
+		if(p->next != NULL) p->next->pred = p->pred;    //取下x节点，注意后面空指针
+		p->pred->next = p->next;
+		while(q != L && q->next->freq <= p->freq)    //退出时q指向要插入的位置
+		{
+			q = q->pred;
+		}
+		p->pred = q->pred;    //把x接到q的前驱后面
+		q->pred->next = p;
+		q->pred = p;    //q接到x的后面
+		p->next = q;
+	}
+	return p;
+}
+
+//21.输出单链表倒数第k个节点的值。设头指针叫list，函数成功时返回1，否则返回0。
+//思想：用双指针，p走过k位以后，q再跟着一起走，到底时q就是所需节点，只要一遍遍历
+int searchK(LNode *list,int k)
+{
+	int count = 0;
+	LNode *p,*q;
+	p = list->next;
+	q = list->next;
 	
+	while(p)
+	{
+		if(count<k)
+		{
+			++count;
+		}
+		else
+		{
+			q = q->next;
+		}
+		p = p->next;
+	}
+	if(count<k)
+		return 0;    //false
 	
+	cout<<q->data;
+	return 1;    //true
+}
+
+//22.假设用单链表存单词。相同后缀的单词会共享后缀节点，编写算法找出公共节点。
+//（和第8题的思想一模一样，先比较两表的长度，然后按尾端对齐用两个指针同步遍历，指向同一节点就是公共节点）
+//时间复杂度是O(len1+len2)。
+
+//23.单链表存储一系列整数，删除表中所有绝对值相等的节点，只保留第一次出现的节点。已知存储的整数最大不超过n。
+//思想：本质就是删除无序表中的重复节点。空间换时间，用长n+1的数组记录重复次数，然后就可以只遍历一次链表完成删除。
+void delSameAbs(LNode *C,int n)
+{
+	int *s;
+	LNode *p, *u;
+	p = C;
+	s = (int*)malloc(sizeof(int)*(n+1));    
 	
+	for(int i = 0;i<n+1;++i)
+	{
+		*(s+i) = 0;    //记录数组初始化为0
+	}
+	
+	while(p->next != NULL)
+	{
+		int m = p->next->data>0 ? (p->next->data) : -(p->next->data);    //求绝对值
+		if(*(s+m) == 0)
+		{
+			++(*(s+m));
+			p = p->next;
+		}
+		else
+		{
+			u = p->next;
+			p->next = u->next;
+			free(u);
+		}
+	}
+	free(s);
+}
+
+//24.如果单链表有环，找到环的入口处。
+//思想：快慢指针推公式，找到相遇点。再用两个指针分别指向头节点和相遇点，同步移动，此时两者相遇点即入口处。
+LNode* findLoopStart(LNode *head)
+{
+	LNode *fast = head;
+	LNode *slow = head;
+	while(slow != NULL && fast->next != NULL)
+	{
+		slow = slow->next;
+		fast = fast->next->next;
+		if(slow == fast)
+			break;
+	}
+    if(slow == NULL  || fast->next == NULL)
+        return NULL;    //	
+    LNode *p1 = head,*p2 = slow;
+    while(p1 != p2)
+	{
+        p1 = p1->next;
+        p2 = p2->next;
+	}
+    return p1;	
+}
+
+//25.单链表的元素为a(0),a(1),...,a(n-1),a(n)。重排，使得顺序为a(0),a(n),a(1),a(n-1),...（要求空间复杂度为O(1)，时间复杂度尽可能低）
+//思想：不能借助辅助空间，所以先将后半段原地逆置，然后遍历后半段，将后半段的元素逐个插到前面a(0),a(1)...的后面。
+//找到中间节点用快慢指针。p走一步，q走两步，最后p指向中间节点。逆置的方法是后半段用头插法插到p的后面。
+//时间复杂度为O(n)。
+void changeList(LNode *C)
+{
+	LNode *p,*q,*r,*s;
+	p = C;
+	q = C;
+	
+	while(q->next != NULL)    //找到中间节点
+	{
+		p = p->next;
+		q = q->next;
+		if(q->next!=NULL)
+			q = q->next;
+	}
+	q = p->next;    //q指向后半段的首节点
+	p->next = NULL;    //为了头插注意把p的尾巴置空
+	while(q != NULL)    //原地逆置
+	{
+		r = q->next;    //r记住q的后继
+		q->next = p->next;
+		p->next = q;
+		q = r;
+	}
+	q = p->next;    //q指向后半段的首节点
+	s = C->next;    //s指向前半段的首节点
+	p->next = NULL;
+	while(q != NULL)    //将已逆置的后半段逐个插到前面
+	{
+		r = q->next;
+		q->next = s->next;
+		s->next = q;
+		s = q->next;    //找到下个插入位置
+		q = r;
+	}
 }
