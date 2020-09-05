@@ -361,6 +361,27 @@ int treeDepth(BiNode* T)
 }
 
 //07.假设数组A[1...n]和B[1...n]分别存储先序和中序遍历的序列。用A和B建树。
+//（递归方法）
+void createTreePreIn(BiNode* &T, ElemType A[], ElemType B[], int length)
+{
+	if (length == 0)
+	{
+		T = NULL;    //长度为0说明一棵子树已经建到底
+		return;
+	}
+
+	int i = 0, lLen = 0, rLen = 0;
+	ElemType c = A[0];    //取先序序列的第一个值
+	while (i < length && B[i] != c)    //查找它在中序序列中的位置
+		++i;
+	lLen = i;    
+	rLen = length - i - 1;    //更新左右子树的长度
+
+	T = (BiNode*)malloc(sizeof(BiNode));    //创建节点
+	T->data = c;    
+	createTreePreIn(T->lchild, &A[1], &B[0], lLen);    //递归建立左子树
+	createTreePreIn(T->rchild, &A[lLen + 1], &B[lLen + 1], rLen);    //递归建立右子树
+}
 
 //08.判断一棵树是否是完全二叉树
 //思想：层次遍历，遇到非空节点让左子树和右子树入队，遇到空节点查看队列后面是否为空，不是空则不是完全二叉树。
