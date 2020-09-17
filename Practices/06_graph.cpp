@@ -118,68 +118,6 @@ void showMGraph(MGraph G)
 	}
 }
 
-//邻接表初始化
-void initAGraph(AGraph& G)
-{
-	for (int i = 0; i < maxsize; ++i)
-	{
-		G.adjlist[i].data = 0;
-		G.adjlist[i].firstArc = (ArcNode*)malloc(sizeof(ArcNode));
-		G.adjlist[i].firstArc->next = NULL;
-	}
-	G.n = 0;
-	G.e = 0;
-}
-
-//邻接表建图
-void createAGraph(AGraph& G)
-{
-	char i, j;
-	cin >> i;    //输入首节点
-	while (i != '#')
-	{
-		G.adjlist[charToNum(i)].firstArc->data = charToNum(i);
-		cin >> j;    //输入相邻节点
-		while (j != '#')
-		{
-			ArcNode* p;
-			p = (ArcNode*)malloc(sizeof(ArcNode));
-			p->data = charToNum(j);
-			p->next = G.adjlist[charToNum(i)].firstArc->next;    //头插法
-			G.adjlist[charToNum(i)].firstArc->next = p;
-			++(G.e);    //统计边数
-			cin >> j;
-		}
-		++(G.n);    //统计节点数
-		cin >> i;
-	}
-	G.e = G.e / 2;    //无向图边数减半
-}
-
-//显示邻接表
-void showAGraph(AGraph G)
-{
-	for (int i = 0; i < G.n; ++i)
-	{
-		ArcNode* p = G.adjlist[i].firstArc;
-		while (p)
-		{
-			cout << p->data << " ";
-			p = p->next;
-		}
-		cout << endl;
-	}
-}
-
-//找某节点的第一个相邻点（邻接表）
-int firstNeighbor(AGraph A, int v)
-{
-	if (A.adjlist[v].firstArc->next != NULL)
-		return A.adjlist[v].firstArc->next->data;
-	else
-		return -1;    //not found
-}
-
 //找某节点的第一个相邻点（邻接矩阵）
 int firstNeighbor(MGraph G, int v)
 {
@@ -240,94 +178,132 @@ void visit(int v)    //访问操作
 	cout << "(" << v << ")";
 }
 
-//BFS 广度优先搜索
-//思想：类比树的层次遍历
+//01.将邻接表转换为邻接矩阵
+//思想：遍历邻接表头节点对应的边节点链表，把邻接矩阵里对应的一项置成1即可
+void graphAtoM(AGraph A, MGraph M)    
+{
+	for (int i = 0; i < M.n; ++i)
+	{
+		ArcNode* p = A.adjlist[i].firstArc;
+		while (p != NULL)
+		{
+			M.edges[i][p->data] = 1;
+			p = p->next;
+		}
+	}
+}
+
+//02.判断一个无向图是否是一棵树，是则返回true，否则返回false。无向图用邻接矩阵存储。
+//思想：判断图是否为树的条件是图是否为n-1条边的连通图。
+//深度优先遍历，若能一次遍历到所有节点，则连通。
+//用vNum和eNum统计遍历到的节点数和边数，作为递归参数向下传递，最后检查是否符合条件即可
 bool visited[maxsize];
 
-void BFS(MGraph G, int v)
+void DFS(MGraph G, int v, int& vNum, int& eNum)
 {
-	Queue Q;
-	initQueue(Q);
-
-	visit(v);
 	visited[v] = true;
-	enQueue(Q, v);
-	while (!isQueueEmpty(Q))
+	++vNum;    //统计遍历节点数
+	int w = firstNeighbor(G, v);
+	while (w != -1)
 	{
-		deQueue(Q, v);
-		for (int w = firstNeighbor(G, v); w >= 0; w = nextNeighbor(G, v, w))    //找周边相邻点
+		++eNum;    //统计遍历边数
+		if (!visited[w])
+			DFS(G, w, vNum, eNum);
+		w = nextNeighbor(G, v, w);
+	}
+}
+
+bool isTree(MGraph G)
+{
+	for (int i = 0; i < G.n; ++i)
+		visited[i] = false;    //初始化
+	int vNum = 0, eNum = 0;
+	DFS(G, 0, vNum, eNum);
+	if (vNum == G.n && eNum == 2 * (G.n - 1))    //注意无向图的边数/2才是实际边数
+		return true;
+	else
+		return false;
+}
+
+//栈定义，给第3题使用
+typedef struct stack
+{
+	int top;
+	int data[maxsize];
+}Stack;
+
+void initStack(Stack &S)
+{
+	S.top = -1;
+	for (int i = 0; i < maxsize; ++i)
+		S.data[i] = 0;
+}
+
+void push(Stack &S, int x)
+{
+	++(S.top);
+	S.data[S.top] = x;
+}
+
+void pop(Stack &S, int& x)
+{
+	x = S.data[S.top];
+	--(S.top);
+}
+
+bool isStackEmpty(Stack S)
+{
+	if (S.top == -1)
+		return true;
+	else
+		return false;
+}
+
+//03.深度优先搜索的非递归实现
+//思想：用栈辅助，visited数组标记，置成true的不重复入栈。
+//注意遍历时顺序会反过来。使用邻接矩阵还是邻接表存储差别不大，关键在于获取相邻节点的函数
+void DFS_non_rec(MGraph G, int v)
+{
+	Stack S;
+	initStack(S);
+	for (int i = 0; i < G.n; ++i)
+		visited[i] = false;    //初始化
+	visited[v] = true;
+	push(S, v);
+	while (!isStackEmpty(S))
+	{
+		pop(S, v);
+		visit(v);    //出栈访问
+		for (int w = firstNeighbor(G, v); w >= 0; w = nextNeighbor(G, v, w))    //遍历邻点
 		{
 			if (!visited[w])
 			{
-				visit(w);
 				visited[w] = true;
-				enQueue(Q, w);
+				push(S, w);
 			}
 		}
 	}
 }
 
-void BFSTraverse(MGraph G)
-{
-	for (int i = 0; i < G.n; ++i)
-		visited[i] = false;
-	for (int i = 0; i < G.n; ++i)    //如果是无向连通图，实际上一次BFS()就遍历完了，该for循环的意义是重新选取节点，保证非连通部分的遍历
-	{
-		if (!visited[i])
-			BFS(G, i);
-	}
-}
 
-//DFS 深度优先搜索
-//思想：递归，类比树的先序遍历
-void DFS(MGraph G, int v)
-{
-	visit(v);
-	visited[v] = true;
-	for (int w = firstNeighbor(G, v); w >= 0; w = nextNeighbor(G, v, w))    //随便找一个邻点
-	{
-		if (!visited[w])    //遍历邻点
-			DFS(G, w);
-	}
-}
 
-void DFSTraverse(MGraph G)
-{
-	for (int i = 0; i < G.n; ++i)
-		visited[i] = false;
-	for (int i = 0; i < G.n; ++i)
-	{
-		if (!visited[i])
-			DFS(G, i);
-	}
-}
+
 
 //建图测试（无向图）
 string g1 = "0123#103#203#3012##" ;
 string g2 = "0123#10245#2016#304#4135#5146#625##";
+string g3 = "2016#304#625#0123#10245#5146#4135##";
+string g4 = "0123#104#2056#30#41#52#62##";    //tree
 
-//测试主函数
 int main()
 {
 	MGraph B;
 	initMGraph(B);
-	createMGraph(B, g2);
+	createMGraph(B, g4);
 	showMGraph(B);
 	
-	int v = 0;
-	int n = 0;
-	cin >> v;
-	//显示某节点的所有邻居
-	while (v != 99)
-	{
-		for (n = firstNeighbor(B, v); n >= 0; n = nextNeighbor(B, v, n))
-		{
-			cout << "next neighbor:" << n << endl;
-		}
-		cin >> v;
-	}
-
-    BFSTraverse(B);
-
-	return 0;
+	if (isTree(B))
+		cout << "it's a tree.\n";
+	else
+		cout << "not a tree.\n";
 }
