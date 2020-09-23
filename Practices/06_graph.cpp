@@ -285,7 +285,50 @@ void DFS_non_rec(MGraph G, int v)
 	}
 }
 
+//04.基于深度优先搜索和广度优先搜索，确定有向图顶点i到j之间是否有路径。
+//DFS思想：递归遍历，传递两点是否相邻的结果。从i到j中的邻点都有路径，则i到j有路径。
+//BFS思想：一层层向外找，找到j就有路径。
+//注意函数内没有给visited数组初始化，每次测试时加上去
+int existPath_DFS(MGraph G, int i, int j)    //DFS
+{
+	int v;
+	if (i == j)
+		return 1;    //true;
+	else
+	{
+		visited[i] = true;
+		for (v = firstNeighbor(G, i); v >= 0; v = nextNeighbor(G, i, v))
+		{
+			if (!visited[v] && existPath_DFS(G, v, j))
+				return 1;
+		}
+		return 0;    //false
+	}
+}
 
+int existPath_BFS(MGraph G,int i,int j)    //BFS
+{
+	Queue Q;
+	initQueue(Q);
+	enQueue(Q,i);
+	int v = 0;    //每次出队的顶点
+	int w = 0;    //顶点的邻居
+	while(!isQueueEmpty(Q))
+	{
+		deQueue(Q,v);
+		visited[v] = true;
+		for(w = firstNeighbor(G,v);w>=0;w = nextNeighbor(G,v,w))
+		{
+			if(w == j)    //找到j
+			    return 1;    //true
+			if(!visited[w])
+				enQueue(Q,w);
+		}
+	}
+	return 0;    //false
+}
+
+//05.
 
 
 

@@ -4,6 +4,7 @@ using namespace std;
 
 #define maxsize 10
 #define charToNum(x) (int(x) - int('0'))
+#define INF 999
 
 //邻接矩阵定义
 typedef struct
