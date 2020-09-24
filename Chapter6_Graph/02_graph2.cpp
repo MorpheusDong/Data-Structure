@@ -2,6 +2,7 @@
 #define INF    999
 
 //迪杰斯特拉算法
+//（求解单源最短路径）
 void Dijkstra(MGraph G,int v,int dist[],int path[])
 {
 	int set[maxsize];
@@ -54,3 +55,86 @@ void printPath(int path[],int a)
 		cout<<stack[top--]<<" ";
 	cout<<endl;
 }
+
+//弗洛伊德算法
+//（求解任意点对之间的最短路径）
+int A[maxsize][maxsize];int path[maxsize][maxsize];
+void Floyd(MGraph G)
+{
+	int i,j,k;
+	for(i = 0;i<G.n;++i)    //初始化
+	{
+		for(int j = 0;j<G.n;++j)
+		{
+			A[i][j] = G.edges[i][j];    //复制邻接矩阵。矩阵中，顶点本身值为0，可直达的点对的值为其权重，不可直达的点对的值为INF
+			path[i][j] = -1;    
+		}
+	}
+	
+	for(k = 0;k<G.n;++k)    //以每个顶点作为中转点，检测到其它顶点的最短路径
+	{
+		for(i = 0;i<G.n;++i)
+		{
+			for(j = 0;j<G.n;++j)
+			{
+				if(A[i][j] > A[i][k] + A[k][j])
+				{
+					A[i][j] = A[i][k] + A[k][j];    //更新最短距离
+					path[i][j] = k;    //更新路径
+				}
+			}
+		}
+	}
+}
+
+//拓扑排序算法
+//（依次输出AOV网中的节点）
+typedef struct ArcNode
+{
+	int data;
+	int count;
+	ArcNode* next;
+}ArcNode;
+
+typedef struct
+{
+	int data;
+	int count;    //算法需要检测入度，假设定义在节点中
+	ArcNode* firstArc;
+}VNode;
+
+typedef struct
+{
+	VNode adjlist[maxsize];
+	int n, e;
+}AGraph;
+
+int topSort(AGraph G)
+{
+	int i,j,n = 0;    //n用来统计输出的节点数
+	int stack[maxsize];int top = -1;    //辅助栈
+	ArcNode* p;    //p用来遍历相邻点
+	for(int i = 0;i<G.n;++i)
+		if(G.adjlist[i]->count == 0)
+			stack[++top] = i;    //将入度为0的点入栈
+	while(top != -1)
+	{
+		i = stack[top--];    
+		cout<<i<<" ";    //输出节点
+		++n;
+		p = G.adjlist[i]->firstArc;    //检测相邻节点
+		while(p!=NULL)
+		{
+			j = p->data;    
+			--(G.adjlist[j]->count);    //入度-1
+			if(G.adjlist[j]->count == 0)
+				stack[++top] = j;    //入度为0的节点入栈
+			p = p->next;    //下一个相邻点
+		}
+	}
+	if(n == G.n)
+		return 1;    //true
+	else
+		return 0;    //false;
+}
+
