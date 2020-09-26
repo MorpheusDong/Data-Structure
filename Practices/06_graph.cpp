@@ -328,10 +328,6 @@ int existPath_BFS(MGraph G,int i,int j)    //BFS
 	return 0;    //false
 }
 
-//05.
-
-
-
 //建图测试（无向图）
 string g1 = "0123#103#203#3012##" ;
 string g2 = "0123#10245#2016#304#4135#5146#625##";
