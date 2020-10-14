@@ -20,6 +20,48 @@ void insertSort(ElemType A[],int n)
 	}
 }
 
+//快速排序
+//思想：分治递归。关键是每次取中枢元素后划分的步骤
+int partition(ElemType A[], int low, int high)
+{
+	int pivot = A[low];    //每次取子列开头的元素作为中枢
+	while (low < high)
+	{
+		while (low<high && A[high] >= pivot)--high;    
+		A[low] = A[high];    //从右向左找到比中枢小的，移到左边
+		while (low < high && A[low] <= pivot)++low;
+		A[high] = A[low];    //从左向右找到比中枢大的，移到右边
+	}
+	A[low] = pivot;    //划分完成，中枢在中间，左边都比中枢小，右边都比中枢大
+	return low;    //返回中枢的位置
+}
+
+void quickSort(ElemType A[], int low, int high)
+{
+	if (low < high)
+	{
+		int k = partition(A, low, high);    //子列整体划分
+		quickSort(A, low, k - 1);    //继续划分左子列
+		quickSort(A, k + 1, high);    //继续右子列
+	}    //当子列只有一个元素时，什么也不做，划分到底，排序完成
+}
+
+//简单选择排序
+void selectSort(ElemType A[],int n)
+{
+	for(int i = 0;i<n;++i)
+	{
+		min = i;
+		for(j = i+1;j<n;++j)
+		{
+			if(A[j]<A[min])
+				min = j;
+		}
+		int temp = A[i];
+		A[i] = A[min];
+		A[min] = temp;
+	}
+}
 
 int main()
 {
