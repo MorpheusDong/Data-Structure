@@ -32,6 +32,10 @@ int kthMin(ElemType A[],int low,int high,int k)
 		return kthMin(A,low+1,high_temp,k);    //在右子列找
 }
 
+//02.找出数组前k大/前k小的所有元素
+//k较大时用推排序最好
+
+
 //测试主函数
 int main()
 {

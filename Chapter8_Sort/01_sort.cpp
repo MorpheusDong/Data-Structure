@@ -2,6 +2,7 @@
 using namespace std;
 
 #define ElemType     int 
+#define maxsize    10
 
 //直接插入排序
 //算法中的数组第一个元素作为哨兵，暂存每次要插入的元素，并用于移动元素时的比较
@@ -51,8 +52,8 @@ void selectSort(ElemType A[],int n)
 {
 	for(int i = 0;i<n;++i)
 	{
-		min = i;
-		for(j = i+1;j<n;++j)
+		int min = i;
+		for(int j = i+1;j<n;++j)
 		{
 			if(A[j]<A[min])
 				min = j;
@@ -63,10 +64,99 @@ void selectSort(ElemType A[],int n)
 	}
 }
 
+//建立大根堆
+void headAdjust(ElemType A[], int k, int n)
+{
+	A[0] = A[k];    //A[0]暂存子树的根节点
+	for (int i = 2 * k; i <= n; i *= 2)    //调整k节点的子树
+	{
+		if (i < n && A[i] < A[i + 1])    //k左右节点较大的下标
+			++i;
+		if (A[0] >= A[i])    //孩子与根节点的值比较，小的什么也不做，大的都移到上面
+			break;    //筛选结束
+		else
+		{
+			A[k] = A[i];    //孩子调整到双亲上
+			k = i;    //k更新为孩子节点，向下调整被破坏的堆
+		}
+	}
+	A[k] = A[0];    //筛选节点的值放入最终位置
+}
+
+void buildMaxHeap(ElemType A[], int n)
+{
+	for (int i = n / 2; i > 0; --i)    //从最远的有孩子的节点开始
+		headAdjust(A, i, n);
+}
+
+void swap(int& x, int& y)
+{
+	cout << y << " ";
+	y = x;
+}
+
+//堆排序（从大到小）
+void heapSort(ElemType A[], int n)
+{
+	buildMaxHeap(A, n);
+	for (int i = n; i > 1; --i)
+	{
+		swap(A[i], A[1]);    //输出顶部节点，底部节点移到顶部
+		headAdjust(A, 1, i - 1);    //重新调整剩下的堆（所谓输出节点其实就是移到最下面，后续不再操作）
+	}
+}
+
+//二路合并
+ElemType *B = (ElemType*)malloc(maxsize*sizeof(ElemType));    //辅助空间，看表长
+void merge(ElemType A[],int low,int mid,int high)
+{
+	int i,j,k;
+	for(k = low;k<=high;++k)
+	    B[k] = A[k];    //复制A到B
+	for(i=low,j=mid+1,k=low;i<=mid&&j<=high;++k)
+	{
+		if(B[i]<=B[j])
+			A[k] = B[i++];    //取两子表较小者并移动其上指针
+		else
+			A[k] = B[j++];
+	}
+	while(i<=mid)    //插入剩余元素
+		A[k++] = B[i++];
+	while(j<=high)
+		A[k++] = B[j++];
+}
+
+//二路归并排序
+void mergeSort(ElemType A[],int low,int high)
+{
+	if(low<high)
+	{
+		int mid = (low+high)/2;
+		mergeSort(A,low,mid);    //排序左子表
+		mergeSort(A,mid+1,high);    //排序右子表
+		merge(A,low,mid,high);    //整体再合并一次
+	}
+}
+
 int main()
 {
-	
-	
-	
-	
+	int data[9] = { 0,6,1,5,12,13,7,8,4 };
+
+	//insertSort(data, 8);
+	//quickSort(data, 0, 7);
+
+	//cout << "Insert sort:";
+	//for (int i = 1; i < 8; ++i)
+		//cout << data[i]<<" ";
+	//cout << endl;
+
+	//cout << "Quick sort:";
+	for (int i = 1; i < 9; ++i)
+		cout << data[i] << " ";
+	cout << endl;
+
+	//heapSort(data, 9);
+	mergeSort(data, 1, 8);
+	for (int i = 1; i < 9; ++i)
+		cout << data[i] << " ";
 }
