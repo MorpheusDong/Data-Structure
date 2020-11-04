@@ -65,6 +65,7 @@ int deQueueLq(LiQueue*& lq, int& x)
 
 	if (lq->front == lq->rear)    //only one node 
 	{
+		x = p->data;
 		lq->front == NULL;
 		lq->rear = NULL;
 	}
